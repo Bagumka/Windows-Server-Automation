@@ -51,12 +51,10 @@ if (-not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdent
     Start-Process powershell.exe -ArgumentList "-ExecutionPolicy Bypass -File `"$PSCommandPath`"" -Verb RunAs
     exit
 }
-
 if (!(Test-Path $targetPath)) {
     New-Item -ItemType Directory -Path $targetPath | Out-Null
     Write-Host "Создана директория $targetPath"
 }
-
 Get-ChildItem $usersPath -Directory | ForEach-Object {
     $zvitArcPath = Join-Path $_.FullName "Documents\ZVIT_ARC"
     if (Test-Path $zvitArcPath) {

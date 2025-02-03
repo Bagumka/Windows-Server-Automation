@@ -1,4 +1,6 @@
-﻿<#
+﻿$ScriptVersion = "0.1.0"
+
+<#
  Licensed to Vadym Klymenko under one or more contributor license agreements.
  See the NOTICE file distributed with this work for additional information regarding copyright ownership.
  Vadym Klymenko licenses this file to You under the Apache License, Version 2.0 (the "License");
@@ -14,14 +16,16 @@
  limitations under the License.
 #>
 
-$ScriptVersion = "0.1.0"
+<#
+.SYNOPSIS
+    
+.DESCRIPTION
+    
+.NOTES
+    Usage:
 
-###########################################################################
-#
-# Usage: 
-#
-#   Invoke-WebRequest -Uri ftp://mikrotikFtpLogin:mikrotikFtpPassword@serialnumber.sn.mynetname.net/vpn.ps1 | iex
-#
+    Invoke-WebRequest -Uri ftp://mikrotikFtpLogin:mikrotikFtpPassword@serialnumber.sn.mynetname.net/vpn.ps1 | iex
+#>
 
 ###########################################################################
 #
@@ -43,14 +47,14 @@ $TrustedNetworkDetection = "company.local"
 ###########################################################################
 
 # Указываем URL скрипта
-$scriptUrl = "ftp://${ftpUsername}:${ftpPassword}@${vpnServer}"
+$baseUrl = "ftp://${ftpUsername}:${ftpPassword}@${vpnServer}"
 
 # Загружаем скрипт с FTP и сохраняем локально
 $scriptFile = "vpn.ps1" 
-Invoke-WebRequest -Uri $scriptUrl/$scriptFile -UseBasicParsing -OutFile $env:TEMP\$scriptFile
+Invoke-WebRequest -Uri $baseUrl/$scriptFile -UseBasicParsing -OutFile $env:TEMP\$scriptFile
 
 #$scriptFile = "vpn.AfterReboot.ps1"
-#Invoke-WebRequest -Uri $scriptUrl/$scriptFile -UseBasicParsing -OutFile $env:TEMP\$scriptFile
+#Invoke-WebRequest -Uri $baseUrl/$scriptFile -UseBasicParsing -OutFile $env:TEMP\$scriptFile
 
 # Проверяем права администратора
 $adminCheck = [System.Security.Principal.WindowsIdentity]::GetCurrent()
