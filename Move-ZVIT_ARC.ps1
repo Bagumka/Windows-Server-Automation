@@ -1,4 +1,4 @@
-<#
+﻿<#
  Licensed to Vadym Klymenko under one or more contributor license agreements.
  See the NOTICE file distributed with this work for additional information regarding copyright ownership.
  Vadym Klymenko licenses this file to You under the Apache License, Version 2.0 (the "License");
