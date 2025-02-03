@@ -24,7 +24,14 @@ if (-not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdent
     exit
 }
 
+###########################################################################
+# Настройки
+#
+
+$usersPath = "C:\Users"
 $targetPath = "D:\Medoc\ZVIT_ARC"
+
+###########################################################################
 
 # Создаём целевую директорию, если её нет
 if (!(Test-Path $targetPath)) {
@@ -33,7 +40,7 @@ if (!(Test-Path $targetPath)) {
 }
 
 # Обходим все папки пользователей
-Get-ChildItem "D:\Users" -Directory | ForEach-Object {
+Get-ChildItem $usersPath -Directory | ForEach-Object {
     $zvitArcPath = Join-Path $_.FullName "Documents\ZVIT_ARC"
 
     # Проверяем, существует ли ZVIT_ARC
@@ -51,7 +58,7 @@ Get-ChildItem "D:\Users" -Directory | ForEach-Object {
             Remove-Item $zvitArcPath -Recurse -Force
 
             # Создаём символьную ссылку (через cmd)
-            cmd /c "mklink /D `"$zvitArcPath`" `"$targetPath`""
+            New-Item -Path $zvitArcPath -ItemType SymbolicLink -Target $targetPath
             Write-Host "Символьная ссылка создана: $zvitArcPath -> $targetPath"
         }
     }
