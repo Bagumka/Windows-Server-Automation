@@ -1,4 +1,6 @@
-﻿<#
+﻿$ScriptVersion = "1.0.1"
+
+<#
  Licensed to Vadym Klymenko under one or more contributor license agreements.
  See the NOTICE file distributed with this work for additional information regarding copyright ownership.
  Vadym Klymenko licenses this file to You under the Apache License, Version 2.0 (the "License");
@@ -14,9 +16,35 @@
  limitations under the License.
 #>
 
-$ScriptVersion = "1.0.0"
+<#
+.SYNOPSIS
+    Перенос файлов архивных копий M.E.Doc с папок пользователей в централизованное хранилище
+.DESCRIPTION
+    Скрипт выполняет следующие действия:
+      - Создаём целевую директорию, если её нет
+      - Обходим все папки пользователей
+      - Проверяем, существует ли ZVIT_ARC
+      - Проверяем, не является ли эта папка уже символьной ссылкой
+      - Переносим все файлы/папки в общий каталог
+      - Удаляем старую папку
+      - Создаём символьную ссылку
+      - Папки нет совсем - просто создаём ссылку
+.NOTES
+    Требуется запуск от имени администратора.
+#>
 
-# Проверка и перезапуск с повышением прав, если нужно
+###########################################################################
+#
+# Configurable settings
+
+$usersPath = "C:\Users"
+$targetPath = "C:\Medoc\ZVIT_ARC"
+
+# End of configurable settings. 
+# The user does not need to pay attention to what follows below this block.
+#
+###########################################################################
+
 if (-not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()
     ).IsInRole([Security.Principal.WindowsBuiltinRole]::Administrator)) {
     Write-Host "Требуются права администратора. Перезапуск..."
@@ -24,57 +52,34 @@ if (-not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdent
     exit
 }
 
-###########################################################################
-# Настройки
-#
-
-$usersPath = "C:\Users"
-$targetPath = "D:\Medoc\ZVIT_ARC"
-
-###########################################################################
-
-# Создаём целевую директорию, если её нет
 if (!(Test-Path $targetPath)) {
     New-Item -ItemType Directory -Path $targetPath | Out-Null
     Write-Host "Создана директория $targetPath"
 }
 
-# Обходим все папки пользователей
 Get-ChildItem $usersPath -Directory | ForEach-Object {
     $zvitArcPath = Join-Path $_.FullName "Documents\ZVIT_ARC"
-
-    # Проверяем, существует ли ZVIT_ARC
     if (Test-Path $zvitArcPath) {
-        # Проверяем, не является ли эта папка уже символьной ссылкой
         if ((Get-Item $zvitArcPath).Attributes -band [IO.FileAttributes]::ReparsePoint) {
             Write-Host "Папка $zvitArcPath уже является символьной ссылкой. Пропускаем..."
         }
         else {
             Write-Host "Обрабатывается: $zvitArcPath"
-            # Переносим все файлы/папки в общий каталог
             Move-Item -Path (Join-Path $zvitArcPath "*") -Destination $targetPath -Recurse -Force -ErrorAction SilentlyContinue
-
-            # Удаляем старую папку
             Remove-Item $zvitArcPath -Recurse -Force
-
-            # Создаём символьную ссылку (через cmd)
             New-Item -Path $zvitArcPath -ItemType SymbolicLink -Target $targetPath
             Write-Host "Символьная ссылка создана: $zvitArcPath -> $targetPath"
         }
     }
     else {
-        # Папки нет совсем - просто создаём ссылку
         Write-Host "Папка $zvitArcPath отсутствует. Создаём ссылку..."
-        # Убедимся, что папка Documents существует, чтобы корректно создать ссылку
         $documentsPath = Join-Path $_.FullName "Documents"
         if (!(Test-Path $documentsPath)) {
             Write-Host "Папка $documentsPath не существует. Создаём..."
             New-Item -ItemType Directory -Path $documentsPath | Out-Null
         }
-
-        cmd /c "mklink /D `"$zvitArcPath`" `"$targetPath`""
+        New-Item -Path $zvitArcPath -ItemType SymbolicLink -Target $targetPath
         Write-Host "Символьная ссылка создана: $zvitArcPath -> $targetPath"
     }
 }
-
 Write-Host "Готово!"
